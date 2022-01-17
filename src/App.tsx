@@ -2,9 +2,13 @@ import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import { Board } from "./Board/Board";
+import { fiveLetterWordsList } from "./modes/fiveLetterMode";
 
 function App() {
-  return <Board currentWord={"daily"} numberOfLetters={5} numberOfRows={6} />;
+  // TODO: Add selection for different modes
+  const randomIndex = Math.floor(Math.random() * fiveLetterWordsList.length);
+  const currentWord = fiveLetterWordsList[randomIndex];
+  return <Board currentWord={currentWord} numberOfLetters={5} numberOfRows={6} />;
 }
 
 export default App;
