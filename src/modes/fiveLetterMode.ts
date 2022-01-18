@@ -1,3 +1,7 @@
+export interface IWordMap {
+  [word: string]: boolean;
+}
+
 export const fiveLetterWordsMap = {
   back: true,
   abase: true,
@@ -682,6 +686,7 @@ export const fiveLetterWordsMap = {
   level: true,
   lever: true,
   light: true,
+  limbo: true,
   limit: true,
   linen: true,
   liner: true,
@@ -798,6 +803,7 @@ export const fiveLetterWordsMap = {
   pilot: true,
   pinch: true,
   pitch: true,
+  pivot: true,
   pixel: true,
   pizza: true,
   place: true,
@@ -827,6 +833,8 @@ export const fiveLetterWordsMap = {
   proud: true,
   prove: true,
   proxy: true,
+  prude: true,
+  prune: true,
   psalm: true,
   pulse: true,
   punch: true,
@@ -893,6 +901,7 @@ export const fiveLetterWordsMap = {
   scary: true,
   scene: true,
   scent: true,
+  scone: true,
   scoop: true,
   scope: true,
   score: true,
@@ -911,6 +920,7 @@ export const fiveLetterWordsMap = {
   shake: true,
   shame: true,
   shape: true,
+  shard: true,
   share: true,
   shark: true,
   sharp: true,
@@ -926,6 +936,7 @@ export const fiveLetterWordsMap = {
   shoot: true,
   shore: true,
   short: true,
+  shout: true,
   siege: true,
   sight: true,
   sigma: true,
@@ -948,7 +959,10 @@ export const fiveLetterWordsMap = {
   smoke: true,
   snack: true,
   snake: true,
+  snare: true,
   sneak: true,
+  snore: true,
+  snort: true,
   solar: true,
   solid: true,
   solve: true,
@@ -997,9 +1011,11 @@ export const fiveLetterWordsMap = {
   stock: true,
   stone: true,
   stool: true,
+  stoop: true,
   store: true,
   storm: true,
   story: true,
+  stout: true,
   stove: true,
   strap: true,
   straw: true,
@@ -1161,7 +1177,7 @@ export const fiveLetterWordsMap = {
   youth: true,
   yummy: true,
   zebra: true,
-};
+} as IWordMap;
 
 export const fiveLetterWordsList = Object.keys(fiveLetterWordsMap);
 

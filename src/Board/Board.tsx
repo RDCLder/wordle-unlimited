@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { IWordMap } from "../modes/fiveLetterMode";
 
 const defaultSquareColor = "#121213";
 const defaultKeyColor = "#818384";
@@ -40,7 +41,14 @@ const BoardRow = styled.div`
   flex-direction: row;
 `;
 
-const BoardSquare = styled.div<{ color: string; hasLetter: boolean }>`
+enum BoardSquareState {
+  Correct,
+  Included,
+  Missing,
+  Default,
+}
+
+const BoardSquare = styled.div<{ hasLetter: boolean; color: string }>`
   align-items: center;
   background-color: ${(props) => props.color ?? defaultSquareColor};
   border: ${(props) =>
@@ -89,138 +97,179 @@ const KeyboardKey = styled.div<{ color: string; isWide: boolean }>`
   }
 `;
 
-const initialKeyboardState = [
+const keyboardRows = [
   [
-    { key: "q", color: defaultKeyColor },
-    { key: "w", color: defaultKeyColor },
-    { key: "e", color: defaultKeyColor },
-    { key: "r", color: defaultKeyColor },
-    { key: "t", color: defaultKeyColor },
-    { key: "y", color: defaultKeyColor },
-    { key: "u", color: defaultKeyColor },
-    { key: "i", color: defaultKeyColor },
-    { key: "o", color: defaultKeyColor },
-    { key: "p", color: defaultKeyColor },
-    { key: "delete", color: defaultKeyColor },
+    { key: "q" },
+    { key: "w" },
+    { key: "e" },
+    { key: "r" },
+    { key: "t" },
+    { key: "y" },
+    { key: "u" },
+    { key: "i" },
+    { key: "o" },
+    { key: "p" },
+    { key: "delete" },
   ],
   [
-    { key: "a", color: defaultKeyColor },
-    { key: "s", color: defaultKeyColor },
-    { key: "d", color: defaultKeyColor },
-    { key: "f", color: defaultKeyColor },
-    { key: "g", color: defaultKeyColor },
-    { key: "h", color: defaultKeyColor },
-    { key: "j", color: defaultKeyColor },
-    { key: "k", color: defaultKeyColor },
-    { key: "l", color: defaultKeyColor },
-    { key: "enter", color: defaultKeyColor },
+    { key: "a" },
+    { key: "s" },
+    { key: "d" },
+    { key: "f" },
+    { key: "g" },
+    { key: "h" },
+    { key: "j" },
+    { key: "k" },
+    { key: "l" },
+    { key: "enter" },
   ],
   [
-    { key: "z", color: defaultKeyColor },
-    { key: "x", color: defaultKeyColor },
-    { key: "c", color: defaultKeyColor },
-    { key: "v", color: defaultKeyColor },
-    { key: "b", color: defaultKeyColor },
-    { key: "n", color: defaultKeyColor },
-    { key: "m", color: defaultKeyColor },
+    { key: "z" },
+    { key: "x" },
+    { key: "c" },
+    { key: "v" },
+    { key: "b" },
+    { key: "n" },
+    { key: "m" },
   ],
 ];
+
+const getColorFromState = (state: BoardSquareState): string => {
+  return state === BoardSquareState.Correct
+    ? correctColor
+    : state === BoardSquareState.Included
+    ? includedColor
+    : state === BoardSquareState.Missing
+    ? missingColor
+    : defaultSquareColor;
+};
 
 interface IBoardProps {
   currentWord: string;
   numberOfLetters: number;
   numberOfRows: number;
+  wordMap: IWordMap;
 }
 
 interface IBoardSquare {
   letter: string | null;
-  color: string;
+  state: BoardSquareState;
+}
+
+interface IDictionary {
+  [letter: string]: boolean;
+}
+
+interface IKeyboardState {
+  correct: IDictionary;
+  included: IDictionary;
+  missing: IDictionary;
 }
 
 interface IKeySquare {
   key: string;
-  color: string;
 }
 
 export const Board = (props: IBoardProps) => {
-  const { currentWord, numberOfRows, numberOfLetters } = props;
+  const { currentWord, numberOfRows, numberOfLetters, wordMap } = props;
   console.log('currentWord', currentWord)
-  const initialBoardState = Array(numberOfRows).fill([]) as IBoardSquare[][];
+  const initialBoardState = Array(numberOfRows).fill([]);
   const [boardState, setBoardState] =
     useState<IBoardSquare[][]>(initialBoardState);
+  const initialKeyboardState = {
+    correct: {},
+    included: {},
+    missing: {},
+  };
   const [keyboardState, setKeyboardState] =
-    useState<IKeySquare[][]>(initialKeyboardState);
+    useState<IKeyboardState>(initialKeyboardState);
   const [currentRowNumber, setCurrentRowNumber] = useState<number>(0);
 
   /**
    * Included letter in correct position is green.  Included letter in wrong position is yellow.
    */
-  const getBoardSquareColor = (
+  const getBoardSquareState = (
     letter: string | null,
     squareIndex: number
-  ): string => {
-    if (!letter) return defaultSquareColor;
+  ): BoardSquareState => {
+    if (!letter) return BoardSquareState.Default;
     return currentWord[squareIndex] === letter
-      ? correctColor
+      ? BoardSquareState.Correct
       : currentWord.includes(letter)
-      ? includedColor
-      : missingColor;
+      ? BoardSquareState.Included
+      : BoardSquareState.Missing;
   };
 
-  // /**
-  //  * Included letter in correct position is green.  Included letter in wrong position is yellow.
-  //  * Default color is gray.
-  //  */
-  // const getKeyboardKeyColor = (key: string): string => {
-  //   if (key.length > 1) return defaultKeyColor;
-  //   return key in keyboardState.isCorrect
-  //     ? correctColor
-  //     : key in keyboardState.isIncluded
-  //     ? includedColor
-  //     : key in keyboardState.isMissing
-  //     ? missingColor
-  //     : defaultKeyColor;
-  // };
+  /**
+   * Included letter in correct position is green.  Included letter in wrong position is yellow.
+   * Default color is gray.
+   */
+  const getKeyboardKeyColor = (key: string): string => {
+    if (key.length > 1) return defaultKeyColor;
+    return !!keyboardState.correct[key]
+      ? correctColor
+      : !!keyboardState.included[key]
+      ? includedColor
+      : !!keyboardState.missing[key]
+      ? missingColor
+      : defaultKeyColor;
+  };
 
-  // const updateKeyboardState = () => {
-  //   const keyboardRow =
-  // };
+  const updateKeyboardState = (row: IBoardSquare[]) => {
+    const newKeyboardState = { ...keyboardState };
+    row.forEach((square) => {
+      if (square.letter) {
+        newKeyboardState.correct[square.letter] =
+          square.state === BoardSquareState.Correct;
+        newKeyboardState.included[square.letter] =
+          square.state === BoardSquareState.Included;
+        newKeyboardState.missing[square.letter] =
+          square.state === BoardSquareState.Missing;
+      }
+    });
+    setKeyboardState(newKeyboardState as any);
+  };
 
   const checkCurrentRow = () => {
     const newBoardState = boardState.slice();
     const currentRow = newBoardState[currentRowNumber].slice();
-    const newCurrentRow = currentRow.map((square, i) => {
-      const newColor = getBoardSquareColor(square.letter, i)
-      return { ...square, color: newColor };
+    const word = currentRow.map((square) => square.letter).join("");
+    if (!(word in wordMap)) {
+      alert(`${word.toUpperCase()} is not in the word list!`);
+      return;
+    }
+    const newRow = currentRow.map((square, i) => {
+      const newState = getBoardSquareState(square.letter, i);
+      return { ...square, state: newState };
     });
-    // TODO: Also update keyboard keys with correct colors
-    newBoardState[currentRowNumber] = newCurrentRow;
+    updateKeyboardState(newRow);
+    newBoardState[currentRowNumber] = newRow;
     setBoardState(newBoardState);
+    setCurrentRowNumber(currentRowNumber + 1);
     // TODO: Check if the word is correct, then set complete state to true
   };
 
   const handleKeyClick = (keySquare: IKeySquare) => {
     if (currentRowNumber === numberOfRows) return;
     const newBoardState = boardState.slice();
-    const newCurrentRow = newBoardState[currentRowNumber].slice();
+    const currentRow = newBoardState[currentRowNumber].slice();
     if (keySquare.key === "enter") {
-      checkCurrentRow()
-      setCurrentRowNumber(currentRowNumber + 1);
+      checkCurrentRow();
     } else if (keySquare.key === "delete") {
       // Remove last letter from current row
-      if (newCurrentRow.length === 0) return;
-      newCurrentRow.splice(1);
-      newBoardState[currentRowNumber] = newCurrentRow;
+      if (currentRow.length === 0) return;
+      const newRow = currentRow.slice(0, currentRow.length - 1);
+      newBoardState[currentRowNumber] = newRow;
       setBoardState(newBoardState);
     } else {
-      if (newCurrentRow.length === numberOfLetters) {
+      if (currentRow.length === numberOfLetters) {
         // TODO: Alert user know row is full
       } else {
-        newCurrentRow.push({
+        currentRow.push({
           letter: keySquare.key,
-          color: defaultSquareColor,
+          state: BoardSquareState.Default,
         });
-        newBoardState[currentRowNumber] = newCurrentRow;
+        newBoardState[currentRowNumber] = currentRow;
         setBoardState(newBoardState);
       }
     }
@@ -249,7 +298,7 @@ export const Board = (props: IBoardProps) => {
                 return (
                   <BoardSquare
                     key={squareIndex}
-                    color={square.color}
+                    color={getColorFromState(square.state)}
                     hasLetter={!!square.letter}
                   >
                     {square.letter}
@@ -261,12 +310,12 @@ export const Board = (props: IBoardProps) => {
         })}
       </BoardContainer>
       <KeyboardContainer>
-        {keyboardState.map((row, rowIndex) => (
+        {keyboardRows.map((row, rowIndex) => (
           <KeyboardRow key={rowIndex}>
             {row.map((keyboardKey, keyIndex) => (
               <KeyboardKey
                 key={keyIndex}
-                color={keyboardKey.color}
+                color={getKeyboardKeyColor(keyboardKey.key)}
                 isWide={keyboardKey.key.length > 1}
                 onClick={() => handleKeyClick(keyboardKey)}
               >
